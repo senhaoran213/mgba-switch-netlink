@@ -90,9 +90,9 @@ VBA-M 的经验是：Socket 收发函数发现断线时，不应立即销毁当�
 实现位于 mGBA 0.10.5 的 `include/mgba/internal/gba/sio/netlink.h` 与 `src/gba/sio/netlink.c`：
 
 - `GBASIONetlink` 是独立的两人 `SIO_MULTI` driver；不会触碰本地多窗口 `GBASIOLockstep`。
-- TCP 使用固定 28 字节、协议版本 2 的 `MGNL` 帧，并按 `HELLO`、`START`、`DATA`、`FINISH`、`CLOSE` 处理。协议版本、会话 ID、角色及传输序号会在核心层检查。
-- Host 监听后由 Join 的 `HELLO` 建立会话；Host 发送包含发起周期的 `START`，Join 读取本机 `SIOMLT_SEND` 后发送 `DATA`。两端按 `GBASIOCyclesPerTransfer` 的两人传输结束周期完成；Host 才发出 `FINISH`，随后两端写回 `SIOMULTI0..1`、清 Busy、请求 SIO IRQ。
-- socket 已连接后的收发为非阻塞，核心每 512 个模拟周期轮询；处在一轮传输时会进行最多 2 ms 的有界等待，防止模拟时间在等待对端进程时跑过 GBA 传输窗口。收发错误只置 `closing`，下一次 SIO 调度关闭 socket，避免在正在处理的传输中释放 driver。
+- TCP 使用固定 28 字节、协议版本 3 的 `MGNL` 帧，并按 `HELLO`、`START`、`DATA`、`FINISH`、`CLOSE` 处理。协议版本、会话 ID、角色及传输序号会在核心层检查。
+- Host 监听后由 Join 的 `HELLO` 建立会话。借鉴 VBA-M，`START` 发送的是 Host 自上轮结束后的 `linkTime` 间隔；Join 先将自己的间隔追到这个值才读取本机 `SIOMLT_SEND` 并发送 `DATA`。双方再以 `GBASIOCyclesPerTransfer` 的两人传输长度完成本轮；Join 本地完成，Host 收齐 `DATA` 后完成并发送 `FINISH` 通知。
+- socket 已连接后的收发为非阻塞，核心每 512 个模拟周期轮询；不在每次轮询中睡眠，避免高频通信菜单降到数 fps。收发错误只置 `closing`，下一次 SIO 调度关闭 socket，避免在正在处理的传输中释放 driver。
 
 Qt 入口在菜单 **File → Network Link Cable...**：Host 默认端口 `8765`，Join 输入 `host:port`（本机测试为 `127.0.0.1:8765`）。Qt 会默认给单窗口挂本地 lockstep；启动 Network Link 时会自动解除该单窗口 driver 并替换为 TCP driver。若已经实际打开并连接第二个本地多人窗口，则拒绝切换。两个进程各自载入 ROM 后，先启动 Host，再启动 Join；断开使用 **File → Disconnect Network Link** 或退出 Join。
 
