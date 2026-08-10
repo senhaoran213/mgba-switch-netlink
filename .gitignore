@@ -1,0 +1,7 @@
+build/
+*.log
+
+# User-owned material and local reference checkouts must never enter Git.
+/roms/
+/reference/
+/third_party/mgba/
