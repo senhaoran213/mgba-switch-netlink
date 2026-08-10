@@ -94,7 +94,7 @@ VBA-M 的经验是：Socket 收发函数发现断线时，不应立即销毁当�
 - Host 监听后由 Join 的 `HELLO` 建立会话；Host 发送 `START`，Join 读取本机 `SIOMLT_SEND` 后发送 `DATA`，Host 发出 `FINISH` 并由两端写回 `SIOMULTI0..1`、清 Busy、请求 SIO IRQ。
 - socket 为非阻塞，核心每 512 个模拟周期轮询；收发错误只置 `closing`，下一次 SIO 调度关闭 socket，避免在正在处理的传输中释放 driver。
 
-Qt 入口在菜单 **File → Network Link Cable...**：Host 默认端口 `8765`，Join 输入 `host:port`（本机测试为 `127.0.0.1:8765`）。两个进程各自载入 ROM 后，先启动 Host，再启动 Join；断开使用 **File → Disconnect Network Link** 或退出 Join。
+Qt 入口在菜单 **File → Network Link Cable...**：Host 默认端口 `8765`，Join 输入 `host:port`（本机测试为 `127.0.0.1:8765`）。Qt 会默认给单窗口挂本地 lockstep；启动 Network Link 时会自动解除该单窗口 driver 并替换为 TCP driver。若已经实际打开并连接第二个本地多人窗口，则拒绝切换。两个进程各自载入 ROM 后，先启动 Host，再启动 Join；断开使用 **File → Disconnect Network Link** 或退出 Join。
 
 本实现已完成编译验证；实际交换仍需要人工运行两个 Qt 进程，确认两边的 `GBA Serial I/O` 日志具有同一序号的：
 
