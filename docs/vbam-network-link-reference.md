@@ -89,8 +89,8 @@ VBA-M 的经验是：Socket 收发函数发现断线时，不应立即销毁当�
 
 实现位于 mGBA 0.10.5 的 `include/mgba/internal/gba/sio/netlink.h` 与 `src/gba/sio/netlink.c`：
 
-- `GBASIONetlink` 是独立的两人 GBA Link Cable driver，绑定 `SIO_MULTI` 与 `SIO_NORMAL_32`；不会触碰本地多窗口 `GBASIOLockstep`。后者是宝可梦进入通信房间时使用的握手路径之一。
-- TCP 使用固定 28 字节、协议版本 4 的 `MGNL` 帧，并按 `HELLO`、`START`、`DATA`、`FINISH`、`CLOSE` 处理。帧带有传输模式；`NORMAL32` 使用同一轮次/时钟门控，保持 mGBA 本地锁步的语义：主端发送 32 位数据，从端接收它，主端读回 `FFFF_FFFF`。协议版本、会话 ID、角色及传输序号会在核心层检查。
+- `GBASIONetlink` 是独立的两人 `SIO_MULTI` driver；不会触碰本地多窗口 `GBASIOLockstep`，也不注册 `SIO_NORMAL_32`。在《火红/叶绿》中，后者会参与 Wireless Adapter 探测；把有线 TCP driver 绑上去会让游戏错误地认为无线适配器存在。
+- TCP 使用固定 28 字节、协议版本 3 的 `MGNL` 帧，并按 `HELLO`、`START`、`DATA`、`FINISH`、`CLOSE` 处理。协议版本、会话 ID、角色及传输序号会在核心层检查。
 - Host 监听后由 Join 的 `HELLO` 建立会话。借鉴 VBA-M，`START` 发送的是 Host 自上轮结束后的 `linkTime` 间隔；Join 先将自己的间隔追到这个值才读取本机 `SIOMLT_SEND` 并发送 `DATA`。双方再以 `GBASIOCyclesPerTransfer` 的两人传输长度完成本轮；Join 本地完成，Host 收齐 `DATA` 后完成并发送 `FINISH` 通知。
 - socket 已连接后的收发为非阻塞，核心每 512 个模拟周期轮询；不在每次轮询中睡眠，避免高频通信菜单降到数 fps。收发错误只置 `closing`，下一次 SIO 调度关闭 socket，避免在正在处理的传输中释放 driver。
 
@@ -105,9 +105,6 @@ NETLINK DATA role=join seq=N ...
 NETLINK DATA role=host seq=N ...
 NETLINK FINISH role=host|join seq=N
 NETLINK SIO_IRQ role=host|join seq=N
-NETLINK NORMAL32_START role=host|join seq=N ...
-NETLINK NORMAL32_COMPLETE role=host|join seq=N ...
-NETLINK NORMAL32_IRQ role=host|join seq=N
 ```
 
 ## 参考资料
