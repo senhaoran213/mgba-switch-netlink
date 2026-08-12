@@ -1,7 +1,13 @@
 build/
 *.log
+*.pyc
+__pycache__/
+.DS_Store
+/log
+/script
 
 # User-owned material and local reference checkouts must never enter Git.
 /roms/
 /reference/
+/netlink-traces/
 /third_party/mgba/
