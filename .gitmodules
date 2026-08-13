@@ -1,4 +1,4 @@
 [submodule "third_party/mgba-0.10.5"]
 	path = third_party/mgba-0.10.5
-	url = https://github.com/senhaoran213/mgba-switch-netlink-core.git
+	url = https://github.com/senhaoran213/mgba.git
 	branch = netlink

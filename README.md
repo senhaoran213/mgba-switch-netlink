@@ -1,6 +1,8 @@
 # mgba-switch-netlink
 
-一个独立的 mGBA GBA Link Cable 研发项目。目标是先验证两台 Nintendo Switch 在同一 Wi-Fi 下通过 TCP 完成两人 GBA 有线 Link Cable；不是通用模拟器前端，也不在当前阶段整合 GBAStation。
+一个基于个人 mGBA fork 的 GBA Link Cable 研发项目。桌面 TCP 原型已经完成，当前目标转为把经过验证的两人 GBA 有线 Link Cable 能力适配进 GBAStation，并最终在两台 Nintendo Switch 的同一 Wi-Fi 环境中验收。
+
+核心 fork：<https://github.com/senhaoran213/mgba>，功能分支为 `netlink`。该 fork 独立维护；当前路线不再以合并回官方 mGBA 为交付目标。
 
 ## 已验证成果
 
@@ -26,8 +28,8 @@
 
 1. **阶段 0**：固定 mGBA 版本并绘制本地 Link Cable 代码地图。
 2. **阶段 1（已完成基线）**：验证桌面同进程双核心/双窗口本地通信基线，并记录 SIO 事件。
-3. **阶段 2（当前）**：桌面双进程 TCP Link Cable 原型及可重复轨迹回放。
-4. **阶段 3**：Switch TCP 传输层与最小 Host/Join。
+3. **阶段 2（已完成桌面基线）**：桌面双进程 TCP Link Cable 原型及可重复轨迹回放。
+4. **阶段 3（当前）**：将 `netlink` 核心适配进 GBAStation，并实现 Switch 最小 Host/Join。
 5. **阶段 4**：两台实体 Switch 完成交换、对战、通信进化验收。
 6. **阶段 5**：再评估 GBAStation 菜单整合与发布包。
 
@@ -83,6 +85,6 @@ python3 tools/netlink_trace_peer.py join.jsonl --listen 127.0.0.1:8765
 
 ## 下一步门槛
 
-进入 Switch 阶段前还需要在两台桌面电脑的同一局域网内重复上述连续两次交换验收，并验证断线、重连、窗口暂停和网络抖动。仅通过编译或 localhost 测试不构成双机/实体 Switch 验收。
+GBAStation 适配先固定其当前 mGBA 子模块基线，逐项移植核心 SIO driver、socket 能力和前端 Host/Join 入口；不得把 Qt UI 直接带入 Switch。随后在两台桌面电脑的局域网中重复连续两次交换，再进入两台实体 Switch 验收。仅通过编译或 localhost 测试不构成双机/实体 Switch 验收。
 
 核心设计见 [Network Link Architecture](docs/network-link-architecture.md)。桌面原型发布说明见 [desktop-poc-v1](docs/releases/desktop-poc-v1.md)。
